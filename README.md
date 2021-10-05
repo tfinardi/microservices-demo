@@ -1,32 +1,64 @@
-# Installing sock-shop on Kubernetes
+# Microservices Demo Lab
 
-See the [documentation](https://microservices-demo.github.io/deployment/kubernetes-minikube.html) on how to deploy Sock Shop using Minikube.
+See the [Blog post](#).
 
-## Kubernetes manifests
+## Requirements
 
-There are 2 sets of manifests for deploying Sock Shop on Kubernetes: one in the [manifests directory](manifests/), and complete-demo.yaml. The complete-demo.yaml is a single file manifest
-made by concatenating all the manifests from the manifests directory, so please regenerate it when changing files in the manifests directory.
+1 - Git
+2 - Docker
+3 - Kubectl
+4 - Kind
 
-## Monitoring
+## Creating the cluster
 
-All monitoring is performed by prometheus. All services expose a `/metrics` endpoint. All services have a Prometheus Histogram called `request_duration_seconds`, which is automatically appended to create the metrics `_count`, `_sum` and `_bucket`.
-
-The manifests for the monitoring are spread across the [manifests-monitoring](./manifests-monitoring) and [manifests-alerting](./manifests-alerting/) directories.
-
-To use them, please run `kubectl create -f <path to directory>`.
-
-### What's Included?
-
-* Sock-shop grafana dashboards
-* Alertmanager with 500 alert connected to slack
-* Prometheus with config to scrape all k8s pods, connected to local alertmanager.
-
-### Ports
-
-Grafana will be exposed on the NodePort `31300` and Prometheus is exposed on `31090`. If running on a real cluster, the easiest way to connect to these ports is by port forwarding in a ssh command:
+```bash
+git clone https://github.com/tfinardi/microservices-demo.git
+cd microservices-demo
+kind create cluster --config ./kind.yaml
 ```
-ssh -i $KEY -L 3000:$NODE_IN_CLUSTER:31300 -L 9090:$NODE_IN_CLUSTER:31090 ubuntu@$BASTION_IP
-```
-Where all the pertinent information should be entered. Grafana and Prometheus will be available on `http://localhost:3000` or `:9090`.
 
-If on Minikube, you can connect via the VM IP address and the NodePort.
+
+## Deploy Sock-Shop
+
+```bash
+kubectl apply -f complete-demo.yaml
+```
+
+## Deploy do Prometheus, kube-state-metrics e node-exporter
+
+```bash
+cd manifests-monitoring
+kubectl apply -f 00-monitoring-ns.yaml
+```
+
+```bash
+kubectl apply $(ls *-prometheus-*.yaml | awk ' { print " -f " $1 } ')
+```
+
+```bash
+kubectl apply $(ls *-prometheus-*.yaml | awk ' { print " -f " $1 } ')
+```
+
+UI: http://localhost:9090
+
+## deploy grafana
+
+```bash
+kubectl apply $(ls 2[0-2]-grafana-*.yaml | awk ' { print " -f " $1 } ')
+```
+
+*wait for the  Grafana POD to go up*
+
+```bash
+kubectl get pods -n monitoring --selector=app=grafana
+NAME                            READY   STATUS    RESTARTS   AGE
+grafana-core-589d98b9f4-7kr9g   1/1     Running   0          6m36s
+```
+
+## import dashboards
+```bash
+kubectl apply -f 23-grafana-import-dash-batch.yaml
+```
+
+## Jaeger - trace
+To do
