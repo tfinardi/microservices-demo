@@ -77,9 +77,10 @@ items:
         port: 8080
         protocol: TCP
         targetPort: 16686
+        nodePort: 30010
     selector:
       jaeger-infra: jaeger-pod
-    type: LoadBalancer
+    type: NodePort
 - apiVersion: v1
   kind: Service
   metadata:
