@@ -20,7 +20,7 @@ kind create cluster --config ./kind.yaml
 ## Deploy da aplicação
 
 ```bash
-kubectl apply -f complete-demo.yaml
+kubectl apply -f ./app/complete-demo.yaml
 ```
 
 UI: http://localhost
